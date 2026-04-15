@@ -1,7 +1,5 @@
 import aiosqlite
-from utils.utilities import aprint
-
-database_path: str = "data/database.db"
+from utils.utilities import aprint, database_path
 
 class DatabaseHandler:
     @staticmethod

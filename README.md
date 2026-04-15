@@ -1,14 +1,17 @@
-# Open Jar Jam bot
+# ThessGameJam Bot
 
 ## Description
-A bot created for the Discord Server of the Open Jar Jam, a game jam by ACM AUTh. The bot will have very simple functions since it is to be used
-only for the specific event (untill further notice). It can be hosted in ACM AUTh's server for the duration of the competition.
+A bot created for the Discord Server of the ThessGameJam, a game jam by ACM AUTh. The bot will have simple functions, extended in contrast with the previous bot, since it is to be used only for the specific event. It can be hosted in ACM AUTh's server for the duration of the competition.
 
 ## Functions
+In this version, the bot will make use of itch.io API for registered game jams. We will try to implement a consistent voting system, supporting different types of votes (judges, community) using weights in scores, and of course parsing all final data to a csv file for 
+
+### Database
 Saves and manages information based on two tables: 
 	* Teams, which store teams and its members
 	* Requests, which stores pending requests for joining a team.
 
+### Commands
 * /join {team}
 	* If team does not exist, create it and set the user as the team's owner. From the team's creation a private Channel with the team's name is created and a role (with the same name).
 	* If the team does exist, the user will have to wait till the owner (or a member maybe?) accepts the request. 

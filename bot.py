@@ -1,7 +1,16 @@
-import discord, os, dotenv
+import discord, os, dotenv, asyncio
 from utils.utilities import *
 from utils.database_handler import DatabaseHandler
 from discord.ext import commands
+
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
+# Create database file if not exists
+if not os.path.isdir("data/"):
+    os.mkdir("data/")
+if not database_path.removeprefix("data/") in os.listdir("data/"):
+    open(database_path, "x").close()
 
 # Enabling default...
 intents = discord.Intents().default()
@@ -22,13 +31,13 @@ for filename in os.listdir("./modules"):
 # (For dbg reasons) The event is triggered when the bot connects to the Discord gateaway with no errors
 @bot.event
 async def on_ready() -> None:
-    await bot.get_channel(log_channel_id).send('I\'m online')
+    #await bot.get_channel(log_channel_id).send('I\'m online')
     await DatabaseHandler.check_tables()
 
 @bot.event
 async def on_command_error(ctx: commands.Context, err: discord.DiscordException) -> None:
     await bot.get_channel(log_channel_id).send(
-        f'@here The command `{ctx.command.name}` raised an exception :\n\n**{err}**'
+        f'@here The command `{ctx.command.name}` raised an exception :\n\n**{err.with_traceback}**'
     )
 
 @bot.event
@@ -39,9 +48,9 @@ async def on_application_command_error(ctx: discord.ApplicationContext, err: dis
 
 @bot.event
 async def on_error(event: str, *args, **kwargs) -> None:
-    message = args[0]  # by docs
+    exc: Exception = args[1]
     await bot.get_channel(log_channel_id).send(
-        f'@here An exception was raised by the event `{event}`:\n\n{message}'
+        f'@here An exception was raised by the event `{event}`:\n\n{exc}'
     )
 
 if __name__ == "__main__":
