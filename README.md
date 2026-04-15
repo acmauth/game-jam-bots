@@ -2,7 +2,7 @@
 
 ## Description
 A bot created for the Discord Server of the Open Jar Jam, a game jam by ACM AUTh. The bot will have very simple functions since it is to be used
-only for the specific event (untill further notice). It can be hosted in ACM AUTh's server for the duration of the competition.
+only for the specific event (until further notice). It can be hosted in ACM AUTh's server for the duration of the competition.
 
 ## Functions
 Saves and manages information based on two tables: 
