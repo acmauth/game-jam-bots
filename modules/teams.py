@@ -2,7 +2,7 @@ import discord
 from discord import ApplicationContext as Context
 from discord.ext import commands
 
-from utils.database_handler import DatabaseHandler as dh
+from utils.database_handler import SQLiteHandler as sql
 from utils.utilities import embed_colour
 
 class TeamsCog(discord.Cog):
@@ -16,14 +16,14 @@ class TeamsCog(discord.Cog):
     async def join(self, ctx: Context, team_name: str) -> None:
         await ctx.defer()
 
-        info = await dh.team_exists(team_name)
+        info = await sql.team_exists(team_name)
         exists = info[0]
         team = info[1]
         user_id = ctx.author.id
 
-        if not await dh.is_user_on_any_team(user_id):
+        if not await sql.is_user_on_any_team(user_id):
             if exists:
-                result = await dh.create_team_request(team, user_id)
+                result = await sql.create_team_request(team, user_id)
                 if result == -1: await ctx.interaction.respond('Η ομάδα που ανέφερες έχει συμπληρώσει τον μέγιστο αριθμό επιτρεπτών μελών!',
                                                    ephemeral=True)
                 elif result == 0: await ctx.interaction.respond(f'Έχεις ήδη αιτηθεί την ένταξή σου στην ομάδα {team}',
@@ -35,8 +35,8 @@ class TeamsCog(discord.Cog):
                     await discord.utils.get(ctx.guild.text_channels, name=final_team_string).send(f'Ο χρήστης {ctx.author.mention} μόλις έστειλε αίτημα ένταξης προς την ομάδα σας!')
             else:
                 try:
-                    await dh.create_team(team_name, user_id) # create the team
-                    await dh.dismiss_all_user_requests(user_id) # delete all sent requests
+                    await sql.create_team(team_name, user_id) # create the team
+                    await sql.dismiss_all_user_requests(user_id) # delete all sent requests
 
                     # create and assign the role
                     role = await ctx.guild.create_role(reason=f'Role creation for team {team_name}',
@@ -61,7 +61,7 @@ class TeamsCog(discord.Cog):
                                                                           discord.utils.get(ctx.guild.roles, name='@everyone') : discord.PermissionOverwrite(
                                                                               view_channel = False
                                                                           ),
-                                                                          discord.utils.get(ctx.guild.roles, name='OpenJarJamBot') : discord.PermissionOverwrite(
+                                                                          discord.utils.get(ctx.guild.roles, name='ThessGameJamBot') : discord.PermissionOverwrite(
                                                                               view_channel = True, manage_channels = True
                                                                           )
                                                                       })
@@ -84,7 +84,7 @@ class TeamsCog(discord.Cog):
                                                                               view_channel=False
                                                                           ),
                                                                           discord.utils.get(ctx.guild.roles,
-                                                                                            name='OpenJarJamBot'): discord.PermissionOverwrite(
+                                                                                            name='ThessGameJamBot'): discord.PermissionOverwrite(
                                                                               view_channel=True, manage_channels=True
                                                                           )
                                                                       })
@@ -103,9 +103,9 @@ class TeamsCog(discord.Cog):
     async def requests(self, ctx: Context) -> None:
         user_id = ctx.author.id
 
-        if await dh.is_user_on_any_team(user_id):
-            team: str = await dh.get_team_by_member(user_id)
-            requests_list = await dh.get_team_total_requests(team)
+        if await sql.is_user_on_any_team(user_id):
+            team: str = await sql.get_team_by_member(user_id)
+            requests_list = await sql.get_team_total_requests(team)
             if len(requests_list) == 0: await ctx.interaction.respond('Δεν υπάρχουν διαθέσιμα αιτήματα προς έλεγχο.')
             else:
                 correct_description = f'Υπάρχουν {len(requests_list)} αιτήματα' if len(requests_list) > 1 else 'Υπάρχει 1 αίτημα'
@@ -141,22 +141,22 @@ class TeamsCog(discord.Cog):
         applicant_id = user.id
         author_id = ctx.author.id
 
-        if await dh.is_user_on_any_team(author_id):
-            team = await dh.get_team_by_member(author_id)
-            member_list = await dh.get_team_total_members(team)
+        if await sql.is_user_on_any_team(author_id):
+            team = await sql.get_team_by_member(author_id)
+            member_list = await sql.get_team_total_members(team)
             if author_id == member_list[0]: #if the user is the leader
-                if await dh.request_exists(team, applicant_id):
-                    if not await dh.is_user_on_any_team(applicant_id):
+                if await sql.request_exists(team, applicant_id):
+                    if not await sql.is_user_on_any_team(applicant_id):
                         if not len(member_list) >= 4:
-                            await dh.add_user_to_team(team, applicant_id)
+                            await sql.add_user_to_team(team, applicant_id)
                             await user.add_roles(discord.utils.get(ctx.guild.roles, name=team), reason=f'Assigning role to member of team {team}')
 
-                            await dh.dismiss_all_user_requests(applicant_id)
+                            await sql.dismiss_all_user_requests(applicant_id)
 
                             await ctx.interaction.respond(f'Αποδέχτηκες το αίτημα του αιτούμενου χρήστη. Καλωσόρισες {user.mention}!')
                         else: await ctx.interaction.respond('Η ομάδα σου είναι γεμάτη. (4/4 μέλη συνολικά)')
                     else:
-                        await dh.dismiss_team_request(team, applicant_id)
+                        await sql.dismiss_team_request(team, applicant_id)
                         await ctx.interaction.respond(f'Ο χρήστης {user.mention} ανήκει ήδη σε ομάδα. Το αίτημα του διαγράφτηκε αυτόματα.')
                 else: await ctx.interaction.respond('Δεν υπάρχει αίτημα ένταξης προς την ομάδα σου από αυτόν τον χρήστη.')
             else: await ctx.interaction.respond('Μόνο ο αρχηγός της ομάδας σου μπορεί να αποδεχτεί αιτήματα.')
@@ -170,12 +170,12 @@ class TeamsCog(discord.Cog):
         applicant_id = user.id
         author_id = ctx.author.id
 
-        if await dh.is_user_on_any_team(author_id):
-            team = await dh.get_team_by_member(author_id)
-            members = await dh.get_team_total_members(team)
+        if await sql.is_user_on_any_team(author_id):
+            team = await sql.get_team_by_member(author_id)
+            members = await sql.get_team_total_members(team)
             if author_id == members[0]:
-                if await dh.request_exists(team, applicant_id):
-                    await dh.dismiss_team_request(team, applicant_id)
+                if await sql.request_exists(team, applicant_id):
+                    await sql.dismiss_team_request(team, applicant_id)
                     await ctx.interaction.respond(f'Το αίτημα του χρήστη {user.mention} απορρίφθηκε επιτυχώς.')
                 else: await ctx.interaction.respond('Δεν υπάρχει αίτημα ένταξης προς την ομάδα σου από αυτόν τον χρήστη.')
             else: await ctx.interaction.respond('Μόνο ο αρχηγός της ομάδας σου μπορεί να απορρίψει αιτήματα.')
@@ -190,13 +190,13 @@ class TeamsCog(discord.Cog):
         author_id = ctx.author.id
         leave_cmd = discord.utils.get(self.bot.application_commands, name='leave')
 
-        if await dh.is_user_on_any_team(author_id):
-            team = await dh.get_team_by_member(author_id)
-            members = await dh.get_team_total_members(team)
+        if await sql.is_user_on_any_team(author_id):
+            team = await sql.get_team_by_member(author_id)
+            members = await sql.get_team_total_members(team)
             if author_id == members[0]:
                 if member_id != author_id:
                     if member_id in members:
-                        await dh.remove_member_from_team(team, member_id)
+                        await sql.remove_member_from_team(team, member_id)
                         await user.remove_roles(discord.utils.get(ctx.guild.roles, name=team), reason=f'Kicking user from team {team}')
                         await ctx.interaction.respond(f'Ο χρήστης {user.mention} εκδιώχθηκε επιτυχώς από την ομάδα!')
                     else: await ctx.interaction.respond('Αυτός ο χρήστης δεν είναι μέλος της ομάδας σου!')
@@ -208,14 +208,14 @@ class TeamsCog(discord.Cog):
     @commands.slash_command(description='Η εντολή σε αφαιρεί από την ομάδα σου!')
     async def leave(self, ctx: Context) -> None:
         user_id = ctx.author.id
-        team = await dh.get_team_by_member(user_id)
+        team = await sql.get_team_by_member(user_id)
 
-        if await dh.is_user_on_any_team(user_id):
-            members = await dh.get_team_total_members(team)
+        if await sql.is_user_on_any_team(user_id):
+            members = await sql.get_team_total_members(team)
             if len(members) > 1:
                 if members[0] == user_id: #the user is the team's leader
-                    await dh.transfer_team_leadership(team) #...to the next user BY ORDER in the members list
-                if await dh.remove_member_from_team(team, user_id):
+                    await sql.transfer_team_leadership(team) #...to the next user BY ORDER in the members list
+                if await sql.remove_member_from_team(team, user_id):
                     await ctx.author.remove_roles(
                         discord.utils.get(ctx.guild.roles, name=team),
                         reason=f'Removing member from team {team}'
@@ -228,8 +228,8 @@ class TeamsCog(discord.Cog):
                 await discord.utils.get(ctx.guild.voice_channels, name=f'Team {team}').delete(reason=f'Deleting team {team}')
                 await discord.utils.get(ctx.guild.roles, name=team).delete(reason=f'Deleting team {team}')
 
-                await dh.delete_team(team)
-                await dh.dismiss_all_team_requests(team)
+                await sql.delete_team(team)
+                await sql.dismiss_all_team_requests(team)
 
                 try:
                     await ctx.interaction.respond(f'Επιτυχής αποχώρηση από την ομάδα `{team}`. Επειδή ήσουν το μόνο μέλος της, η ομάδα διαγράφτηκε.')
@@ -244,13 +244,13 @@ class TeamsCog(discord.Cog):
                     required=False,
                     default='')
     async def members(self, ctx: Context, team_name: str = '') -> None:
-        team: str = await dh.get_team_by_member(ctx.author.id) if len(team_name) == 0 else team_name
-        info = await dh.team_exists(team)
+        team: str = await sql.get_team_by_member(ctx.author.id) if len(team_name) == 0 else team_name
+        info = await sql.team_exists(team)
         team = info[1]
         exists = info[0]
-        if await dh.is_user_on_any_team(ctx.author.id):
+        if await sql.is_user_on_any_team(ctx.author.id):
             if exists:
-                member_list = await dh.get_team_total_members(team)
+                member_list = await sql.get_team_total_members(team)
                 correct_member_form = 'μέλη, τα οποία παρουσιάζονται' if len(member_list) > 1 else 'μέλος, το οποίο παρουσιάζεται'
                 embed = discord.Embed(colour=embed_colour,
                                       title=f'Team {team}',
@@ -285,8 +285,8 @@ class TeamsCog(discord.Cog):
         else: await ctx.interaction.respond('Δεν ανήκεις σε κάποια ομάδα!')
 
     @commands.slash_command(description='Η εντολή εκτυπώνει όλες τις υπάρχουσες ομάδες!')
-    async def list(self, ctx: Context) -> None:
-        teams = await dh.get_all_teams()
+    async def teams(self, ctx: Context) -> None:
+        teams = await sql.get_all_teams()
         correct_description = f'Υπάρχουν **{len(teams.keys())}** ομάδες' if len(teams.keys()) != 1 else 'Υπάρχει **1** ομάδα'
         embed = discord.Embed(
             colour=embed_colour,

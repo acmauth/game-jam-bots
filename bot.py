@@ -1,6 +1,6 @@
-import discord, os, dotenv, asyncio
+import discord, os, dotenv, asyncio, tracemalloc
 from utils.utilities import *
-from utils.database_handler import DatabaseHandler
+from utils.database_handler import SQLiteHandler
 from discord.ext import commands
 
 loop = asyncio.new_event_loop()
@@ -32,12 +32,12 @@ for filename in os.listdir("./modules"):
 @bot.event
 async def on_ready() -> None:
     #await bot.get_channel(log_channel_id).send('I\'m online')
-    await DatabaseHandler.check_tables()
+    await SQLiteHandler.check_tables()
 
 @bot.event
 async def on_command_error(ctx: commands.Context, err: discord.DiscordException) -> None:
     await bot.get_channel(log_channel_id).send(
-        f'@here The command `{ctx.command.name}` raised an exception :\n\n**{err.with_traceback}**'
+        f'@here The command `{ctx.command.name}` raised an exception :\n\n**{err}**'
     )
 
 @bot.event
@@ -48,12 +48,13 @@ async def on_application_command_error(ctx: discord.ApplicationContext, err: dis
 
 @bot.event
 async def on_error(event: str, *args, **kwargs) -> None:
-    exc: Exception = args[1]
+    exc: Exception = args[1] if len(args) > 1 else args[0]
     await bot.get_channel(log_channel_id).send(
         f'@here An exception was raised by the event `{event}`:\n\n{exc}'
-    )
+    )   
 
 if __name__ == "__main__":
     dotenv.load_dotenv() # load .env
     token = os.getenv("DISCORD_BOT_TOKEN") # get the token
+    tracemalloc.start()
     bot.run(token) # run the bot

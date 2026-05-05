@@ -6,6 +6,13 @@ embed_colour = 0xd03df5
 # Database file relative path
 database_path = "data/database.db"
 
+# Votes file relative path
+votes_path = "data/votes.json"
+
+# Active Game Jam ID as given by itch.io
+active_gamejam_id = 405360 #416205
+active_gamejam_name = "open-jar-jam" # "thess-game-jam"
+
 # Async console printing
 async def aprint(output) -> None:
     await asyncio.to_thread(sys.stdout.write, f'{output}\n')

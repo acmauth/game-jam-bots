@@ -1,14 +1,16 @@
 import aiosqlite
 from utils.utilities import aprint, database_path
 
-class DatabaseHandler:
+class SQLiteHandler:
     @staticmethod
     async def check_tables() -> None:
         checkTeamsTableQuery = 'select Name from Teams;'
         checkRequestsTableQuery = 'select UserId from Requests;'
+        checkSubmissionsTableQuery = 'select Team from Submissions;'
 
         teamsTableCreationQuery = 'create table Teams (Name varchar(255) not null, Leader int not null, Members varchar(255) default null, primary key (Name));'
         requestsTableQuery = 'create table Requests (UserId int not null, Team varchar(255) not null);'
+        submissionsTableQuery = 'create table Submissions (Team str not null, GameId int not null, Title str not null, URL str not null, primary key (Team));'
 
         async with aiosqlite.connect(database_path) as db:
             try: await db.execute(checkTeamsTableQuery)
@@ -22,7 +24,12 @@ class DatabaseHandler:
                     await db.execute(requestsTableQuery)
                     await db.commit()
                 finally:
-                    await aprint("Tables are properly registered in the database!")
+                    try: await db.execute(checkSubmissionsTableQuery)
+                    except:
+                        await db.execute(submissionsTableQuery)
+                        await db.commit()
+                    finally:
+                        await aprint("Tables are properly registered in the database!")
 
     @staticmethod
     async def create_team(team: str, leader_id: int) -> None:
@@ -38,7 +45,7 @@ class DatabaseHandler:
 
     @staticmethod
     async def transfer_team_leadership(team: str) -> None:
-        members = await DatabaseHandler.get_team_total_members(team)
+        members = await SQLiteHandler.get_team_total_members(team)
         old_leader = members.pop(0)
 
         leader = members[0] # new leader
@@ -74,7 +81,7 @@ class DatabaseHandler:
 
                 for row in rows:
                     team: str = row[0]
-                    total_members = await DatabaseHandler.get_team_total_members(team)
+                    total_members = await SQLiteHandler.get_team_total_members(team)
                     result[team] = total_members
 
         return result
@@ -120,7 +127,7 @@ class DatabaseHandler:
 
     @staticmethod
     async def get_team_by_member(user_id: int) -> str:
-        teams = await DatabaseHandler.get_all_teams()
+        teams = await SQLiteHandler.get_all_teams()
         result = ''
 
         for team, members in teams.items():
@@ -132,7 +139,7 @@ class DatabaseHandler:
 
     @staticmethod
     async def team_exists(team_name: str) -> list:
-        all_teams = await DatabaseHandler.get_all_teams()
+        all_teams = await SQLiteHandler.get_all_teams()
         teams = list(all_teams.keys())
         fixed_teams = list()
         for team_c in teams:
@@ -189,11 +196,11 @@ class DatabaseHandler:
 
     @staticmethod
     async def create_team_request(team: str, user_id: int) -> int:
-        request_exists = await DatabaseHandler.request_exists(team, user_id)
+        request_exists = await SQLiteHandler.request_exists(team, user_id)
         requestCreationQuery = f'insert into Requests values ({user_id}, "{team}");'
 
         async with aiosqlite.connect(database_path) as db:
-            if len(await DatabaseHandler.get_team_total_members(team)) >= 4: result = -1  # team is full
+            if len(await SQLiteHandler.get_team_total_members(team)) >= 4: result = -1  # team is full
             elif not request_exists:
                 await db.execute(requestCreationQuery)
                 await db.commit()
@@ -243,6 +250,41 @@ class DatabaseHandler:
 
     @staticmethod
     async def request_exists(team: str, user_id: int) -> bool:
-        requested_users = await DatabaseHandler.get_team_total_requests(team)
+        requested_users = await SQLiteHandler.get_team_total_requests(team)
         if user_id in requested_users: return True
         return False
+    
+    @staticmethod
+    async def submit_game(team: str, game_name: str, game_url: str, game_id: int) -> None:
+        insertSubmission = f'insert or replace into Submissions values ("{team}", {game_id}, "{game_name}", "{game_url}")'
+
+        async with aiosqlite.connect(database_path) as db:
+            await db.execute(insertSubmission)
+            await db.commit()
+
+    @staticmethod
+    async def clear_submissions() -> None:
+        async with aiosqlite.connect(database_path) as db:
+            await db.execute("delete from Submissions;")
+            await db.commit()
+
+    @staticmethod
+    async def gather_submissions() -> list:
+        async with aiosqlite.connect(database_path) as db:
+            cursor = await db.execute("select * from Submissions;")
+            print(cursor)
+
+        return list()
+
+class JSONHandler:
+    @staticmethod
+    async def submit_vote() -> None:
+        pass
+
+    @staticmethod
+    async def get_voted_game() -> object: #change return type
+        pass
+
+    @staticmethod
+    async def get_all_votes() -> object:
+        pass
