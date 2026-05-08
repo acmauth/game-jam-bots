@@ -48,6 +48,11 @@ Saves and manages information based on two tables:
 	* If blank and user isn't part of a team it prints "You are not in a team"
 	* If a team name is given but it doesn't exist it prints "Team does not exist"
 
-* /list 
+* /teams 
 	* Print teams
 
+* /submissions
+	* Displays the current valid game submissions made by teams in itch.io. It returns information regarding the game's URL, ID and Title.
+
+* /rate {game title} {rating}
+	* Rate a game you have played! The game title must be from a valid submission (there are pre-chosen options) and the rating must be a floating point number between 0 and 10. Note that one cannot rate their own game.

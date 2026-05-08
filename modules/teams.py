@@ -58,6 +58,9 @@ class TeamsCog(discord.Cog):
                                                                           discord.utils.get(ctx.guild.roles, name='Moderator') : discord.PermissionOverwrite(
                                                                               view_channel = True
                                                                           ),
+                                                                          discord.utils.get(ctx.guild.roles, name="Mentor") : discord.PermissionOverwrite(
+                                                                              view_channel = True
+                                                                          ),
                                                                           discord.utils.get(ctx.guild.roles, name='@everyone') : discord.PermissionOverwrite(
                                                                               view_channel = False
                                                                           ),
@@ -79,6 +82,9 @@ class TeamsCog(discord.Cog):
                                                                                             name='Moderator'): discord.PermissionOverwrite(
                                                                               view_channel=True
                                                                           ),
+                                                                          discord.utils.get(ctx.guild.roles, name="Mentor") : discord.PermissionOverwrite(
+                                                                              view_channel = True
+                                                                          ),
                                                                           discord.utils.get(ctx.guild.roles,
                                                                                             name='@everyone'): discord.PermissionOverwrite(
                                                                               view_channel=False
@@ -90,14 +96,14 @@ class TeamsCog(discord.Cog):
                                                                       })
 
                     # send the final response
-                    await ctx.interaction.respond(f'Η ομάδα {team_name} δημιουργήθηκε επιτυχώς! Επιπλέον, πήρες τον ειδικό ρόλο {role.mention}, όπως και '
-                                      f'δημιουργήθηκαν τα κανάλια {txt_channel.mention} και {vc_channel.mention} αποκλειστικά για τα μέλη της ομάδας σου!')
+                    await ctx.interaction.respond(f'Η ομάδα `{team_name}` δημιουργήθηκε επιτυχώς! Επιπλέον, πήρες τον ειδικό ρόλο {role.mention}, όπως και '
+                                      f'δημιουργήθηκαν τα κανάλια {txt_channel.mention} και {vc_channel.mention} αποκλειστικά για τα μέλη της ομάδας σου!', ephemeral=True)
                 except:
-                    await ctx.interaction.respond(f'**__Σφάλμα__**: Ανεπιτυχής δημιουργία της ομάδας `{team_name}`. Παρακαλώ επικοινώνησε με κάποιο μέλος προσωπικού.')
+                    await ctx.interaction.respond(f'**__Σφάλμα__**: Ανεπιτυχής δημιουργία της ομάδας `{team_name}`. Παρακαλώ επικοινώνησε με κάποιο μέλος προσωπικού.', ephemeral=True)
         else:
             leave_cmd = discord.utils.get(self.bot.application_commands, name='leave')
             await ctx.interaction.respond(f'Ανήκεις ήδη σε ομάδα! Αν επιθυμείς να ενταχθείς σε κάποια άλλη, χρησιμοποίησε την εντολή </leave:{leave_cmd.id}> '
-                              'για να αποχωρήσεις από την ομάδα σου και έπειτα προσπάθησε ξανά!', ephemeral=False)
+                              'για να αποχωρήσεις από την ομάδα σου και έπειτα προσπάθησε ξανά!', ephemeral=True)
 
     @commands.slash_command(description='Η εντολή επιστρέφει τα αιτήματα ένταξης χρηστών προς την ομάδα σου!')
     async def requests(self, ctx: Context) -> None:
@@ -129,9 +135,9 @@ class TeamsCog(discord.Cog):
                     inline=False
                 )
 
-                await ctx.interaction.respond(embed=embed)
+                await ctx.interaction.respond(embed=embed, ephemeral=True)
         else:
-            await ctx.interaction.respond('Δεν ανήκεις σε κάποια ομάδα!')
+            await ctx.interaction.respond('Δεν ανήκεις σε κάποια ομάδα!', ephemeral=True)
 
     @commands.slash_command(description='Η εντολή αποδέχεται το αίτημα ένταξης του χρήστη της παραμέτρου προς την ομάδα σου!')
     @discord.option(name='user',
@@ -220,8 +226,8 @@ class TeamsCog(discord.Cog):
                         discord.utils.get(ctx.guild.roles, name=team),
                         reason=f'Removing member from team {team}'
                     )
-                    await ctx.interaction.respond(f'Επιτυχής αποχώρηση από την ομάδα `{team}`.')
-                else: await ctx.interaction.respond('Βρέθηκε σφάλμα, παρακαλώ επικοινώνησε άμεσα με ένα μέλος προσωπικού.') #just in case
+                    await ctx.interaction.respond(f'Επιτυχής αποχώρηση από την ομάδα `{team}`.', ephemeral=True)
+                else: await ctx.interaction.respond('Βρέθηκε σφάλμα, παρακαλώ επικοινώνησε άμεσα με ένα μέλος προσωπικού.', ephemeral=True) #just in case
             else: # delete the team
                 final_team = team.replace(' ', '-').lower()
                 await discord.utils.get(ctx.guild.text_channels, name=f'team-{final_team}').delete(reason=f'Deleting team {team}')
@@ -232,10 +238,10 @@ class TeamsCog(discord.Cog):
                 await sql.dismiss_all_team_requests(team)
 
                 try:
-                    await ctx.interaction.respond(f'Επιτυχής αποχώρηση από την ομάδα `{team}`. Επειδή ήσουν το μόνο μέλος της, η ομάδα διαγράφτηκε.')
+                    await ctx.interaction.respond(f'Επιτυχής αποχώρηση από την ομάδα `{team}`. Επειδή ήσουν το μόνο μέλος της, η ομάδα διαγράφτηκε.', ephemeral=True)
                 except discord.NotFound:
                     pass #the channel was already deleted
-        else: await ctx.interaction.respond('Δεν ανήκεις σε κάποια ομάδα!')
+        else: await ctx.interaction.respond('Δεν ανήκεις σε κάποια ομάδα!', ephemeral=True)
 
     @commands.slash_command(description='Η εντολή εκτυπώνει τα μέλη μιας ομάδας!')
     @discord.option(name='team_name',
@@ -279,10 +285,10 @@ class TeamsCog(discord.Cog):
                         inline=False
                     )
 
-                await ctx.interaction.respond(embed=embed)
+                await ctx.interaction.respond(embed=embed, ephemeral=True)
             else:
-                await ctx.interaction.respond('Η ομάδα που ανέφερες δεν υπάρχει!')
-        else: await ctx.interaction.respond('Δεν ανήκεις σε κάποια ομάδα!')
+                await ctx.interaction.respond('Η ομάδα που ανέφερες δεν υπάρχει!', ephemeral=True)
+        else: await ctx.interaction.respond('Δεν ανήκεις σε κάποια ομάδα!', ephemeral=True)
 
     @commands.slash_command(description='Η εντολή εκτυπώνει όλες τις υπάρχουσες ομάδες!')
     async def teams(self, ctx: Context) -> None:
@@ -303,7 +309,7 @@ class TeamsCog(discord.Cog):
                 inline=False
             )
 
-        await ctx.interaction.respond(embed=embed)
+        await ctx.interaction.respond(embed=embed, ephemeral=True)
 
 def setup(bot: commands.Bot):
     bot.add_cog(TeamsCog(bot))

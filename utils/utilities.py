@@ -10,8 +10,8 @@ database_path = "data/database.db"
 votes_path = "data/votes.json"
 
 # Active Game Jam ID as given by itch.io
-active_gamejam_id = 405360 #416205
-active_gamejam_name = "open-jar-jam" # "thess-game-jam"
+active_gamejam_id = 416205
+active_gamejam_name = "thess-game-jam"
 
 # Async console printing
 async def aprint(output) -> None:

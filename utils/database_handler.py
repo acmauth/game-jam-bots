@@ -1,5 +1,5 @@
-import aiosqlite
-from utils.utilities import aprint, database_path
+import aiosqlite, aiofiles, json
+from utils.utilities import aprint, database_path, votes_path
 
 class SQLiteHandler:
     @staticmethod
@@ -272,19 +272,48 @@ class SQLiteHandler:
     async def gather_submissions() -> list:
         async with aiosqlite.connect(database_path) as db:
             cursor = await db.execute("select * from Submissions;")
-            print(cursor)
+            games = await cursor.fetchall()
 
-        return list()
+            await cursor.close()
+
+        return games
+    
+    @staticmethod
+    async def submission_exists(title: str) -> bool:
+        games = await SQLiteHandler.gather_submissions()
+        titles = []
+
+        for game in games:
+            titles.append(game[2])
+
+        return title in titles
+    
+    @staticmethod
+    async def crosscheck_game_team(title: str, team: str) -> bool:
+        result: bool
+
+        async with aiosqlite.connect(database_path) as db:
+            cursor = await db.execute(f'select * from Submissions where Title="{title}" and Team="{team}"')
+            rows = await cursor.fetchall()
+
+            if len(rows) == 0: result = True
+            else: result = False
+
+            await cursor.close()
+
+        return result
 
 class JSONHandler:
     @staticmethod
-    async def submit_vote() -> None:
-        pass
+    async def submit_rating(submitter: str, game: str, rating: float, rtype: str) -> None:
+        async with aiofiles.open(votes_path, "r") as file:
+            contents = await file.read()
 
-    @staticmethod
-    async def get_voted_game() -> object: #change return type
-        pass
+        db: dict = json.loads(contents)
+        if game not in db[rtype].keys():
+            db[rtype][game] = dict()
+        db[rtype][game][submitter] = rating
+        contents = json.dumps(db)
 
-    @staticmethod
-    async def get_all_votes() -> object:
-        pass
+        async with aiofiles.open(votes_path, "w") as file:
+            await file.write(contents)

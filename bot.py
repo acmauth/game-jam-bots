@@ -1,4 +1,4 @@
-import discord, os, dotenv, asyncio, tracemalloc
+import discord, os, dotenv, asyncio, tracemalloc, json
 from utils.utilities import *
 from utils.database_handler import SQLiteHandler
 from discord.ext import commands
@@ -11,6 +11,13 @@ if not os.path.isdir("data/"):
     os.mkdir("data/")
 if not database_path.removeprefix("data/") in os.listdir("data/"):
     open(database_path, "x").close()
+if not votes_path.removeprefix("data/") in os.listdir("data/"):
+    file = open(votes_path, "x")
+    json.dump({
+        "judge": {},
+        "community" : {}
+    }, file)
+    file.close()
 
 # Enabling default...
 intents = discord.Intents().default()
