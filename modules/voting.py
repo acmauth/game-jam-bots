@@ -54,6 +54,7 @@ class VotingCog(discord.Cog):
     async def rate(self, ctx: Context, game_title: str, rating: float):
         if await sql.submission_exists(game_title):
             judge_role = discord.utils.get(ctx.guild.roles, name="Judge")
+            volunteer = discord.utils.get(ctx.guild.roles, name="Volunteer")
             rtype = "community"
             special_roles = [
                 discord.utils.get(ctx.guild.roles, name="Moderator"),
@@ -64,6 +65,7 @@ class VotingCog(discord.Cog):
             if len([e for e in special_roles if e in ctx.author.roles]) > 0: 
                 team = ctx.author.name
                 if judge_role in ctx.author.roles: rtype = "judge"
+            elif volunteer in ctx.author.roles: ctx.author.roles[1].name if len(ctx.author.roles) > 2 else ctx.author.name
             else: team = ctx.author.roles[1].name if len(ctx.author.roles) > 1 else ctx.author.name
 
             if await sql.crosscheck_game_team(game_title, team):

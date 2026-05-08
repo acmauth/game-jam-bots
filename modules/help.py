@@ -78,8 +78,19 @@ class HelpCommandCog(discord.Cog):
             inline=False
         )
         embed.add_field(
-            name='● /list',
-            value='> Εκτυπώνει όλες τις υπάρχουσες ομάδες.'
+            name='● /teams',
+            value='> Εκτυπώνει όλες τις υπάρχουσες ομάδες.',
+            inline=False
+        )
+        embed.add_field(
+            name='● /submissions',
+            value='> Επιστρέφει όλες τις έγκυρες εγγραφές παιχνιδιών που πραγματοποιήθηκαν μέσω του itch.io. Είναι λογικό η εντολή να μην λειτουργεί κατάλληλα μέχρι την περίοδο της αξιόληγησης των παιχνιδιών.',
+            inline=False
+        )
+        embed.add_field(
+            name='● /rate {τίτλος παιχνιδιού} {βαθμολογία}',
+            value='> Αξιολόγησε τα παιχνίδια! Ο βαθμός πρέπει να είναι δεκαδικός μεταξύ του 0 και 10.',
+            inline=False
         )
 
         embed.set_footer(
