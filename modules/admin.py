@@ -42,7 +42,27 @@ class AdminCog(discord.Cog):
     @commands.has_permissions(administrator=True)
     async def exportratings(self, ctx: Context):
         pass
+    
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def forcedeleteteam(self, ctx: Context, *team):
+        final_team = " ".join(team)
+        errors = []
 
+        try: await sql.delete_team(final_team)
+        except: errors.append("SQLite Database did not contain the team")
+
+        try: await discord.utils.get(ctx.guild.roles, name=final_team).delete(reason=f'Deleting team {final_team}')
+        except: errors.append("Role was missing")
+
+        try: await discord.utils.get(ctx.guild.text_channels, name=f'team-{final_team.lower()}').delete(reason=f'Deleting team {final_team}')
+        except: errors.append("Text channel was missing")
+
+        try: await discord.utils.get(ctx.guild.voice_channels, name=f'Team {final_team}').delete(reason=f'Deleting team {final_team}')
+        except: errors.append("Voice Channel was missing")
+
+        await ctx.send(f"Team {final_team} was successfully deleted. Errors encountered:\n\n{", ".join(errors)}")
+        
 
 def setup(bot: commands.Bot):
     bot.add_cog(AdminCog(bot))
