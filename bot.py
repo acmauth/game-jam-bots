@@ -13,10 +13,7 @@ if not database_path.removeprefix("data/") in os.listdir("data/"):
     open(database_path, "x").close()
 if not votes_path.removeprefix("data/") in os.listdir("data/"):
     file = open(votes_path, "x")
-    json.dump({
-        "judge": {},
-        "community" : {}
-    }, file)
+    json.dump({}, file)
     file.close()
 
 # Enabling default...

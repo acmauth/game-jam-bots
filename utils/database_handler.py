@@ -305,15 +305,33 @@ class SQLiteHandler:
 
 class JSONHandler:
     @staticmethod
-    async def submit_rating(submitter: str, game: str, rating: float, rtype: str) -> None:
+    async def submit_rating(submitter: str, game: str, ratings: list) -> None:
         async with aiofiles.open(votes_path, "r") as file:
             contents = await file.read()
 
         db: dict = json.loads(contents)
-        if game not in db[rtype].keys():
-            db[rtype][game] = dict()
-        db[rtype][game][submitter] = rating
+        if game not in db.keys():
+            db[game] = dict()
+        db[game][submitter] = {
+            "theme_cohesion" : ratings[0],
+            "gameplay" : ratings[1],
+            "enjoyment" : ratings[2],
+            "assets" : ratings[3],
+        }
         contents = json.dumps(db)
 
         async with aiofiles.open(votes_path, "w") as file:
             await file.write(contents)
+
+    @staticmethod
+    async def get_user_ratings(submitter: str) -> dict:
+        async with aiofiles.open(votes_path, "r") as file:
+            contents = await file.read()
+
+        db: dict = json.loads(contents)
+        ratings = {}
+
+        for k, v in db.items():
+            if submitter in v.keys(): ratings[k] = v[submitter]
+
+        return ratings

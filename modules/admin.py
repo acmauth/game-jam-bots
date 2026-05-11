@@ -26,7 +26,8 @@ class AdminCog(discord.Cog):
                 (sub_html.find("What is your team's name?")+sub_html[sub_html.find("What is your team's name"):]
                  .find("</span>"))].replace("</strong><br/><span>", "")
             
-            await sql.submit_game(f"Team {str(i)}", game_title, game_url, game_id)
+            # await sql.submit_game(f"Team {str(i)}", game_title, game_url, game_id)
+            await sql.submit_game(team, game_title, game_url, game_id)
             i += 1
         
         # await sql.submit_game(ctx.author.name, "Test game", "https://www.google.com", "676767")
