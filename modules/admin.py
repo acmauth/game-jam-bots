@@ -73,10 +73,10 @@ class AdminCog(discord.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def rawratings(self, ctx: Context):
-        dataset = await jsondb.get_all_ratings()
-
+        file = discord.File("data/votes.json")
         await ctx.send(
-            f"```json\n{json.dumps(dataset, sort_keys=True, indent=4)}\n```"
+            content="The ratings file",
+            file=file
         )
 
     
