@@ -15,6 +15,8 @@ if not votes_path.removeprefix("data/") in os.listdir("data/"):
     file = open(votes_path, "x")
     json.dump({}, file)
     file.close()
+if not "ratings.csv" in os.listdir("data/"):
+    file = open("data/ratings.csv", "x").close()
 
 # Enabling default...
 intents = discord.Intents().default()

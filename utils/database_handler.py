@@ -335,3 +335,12 @@ class JSONHandler:
             if submitter in v.keys(): ratings[k] = v[submitter]
 
         return ratings
+    
+    @staticmethod
+    async def get_all_ratings() -> dict:
+        async with aiofiles.open(votes_path, "r") as file:
+            contents = await file.read()
+
+        db: dict = json.loads(contents)
+        
+        return db

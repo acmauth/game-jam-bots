@@ -1,8 +1,8 @@
-import discord, json, requests, html
+import discord, csv, requests, html, json
 from discord.ext import commands
 from discord.ext.commands import Context
-from utils.utilities import active_gamejam_id, active_gamejam_name
-from utils.database_handler import SQLiteHandler as sql
+from utils.utilities import active_gamejam_id, active_gamejam_name, embed_colour
+from utils.database_handler import SQLiteHandler as sql, JSONHandler as jsondb
 
 class AdminCog(discord.Cog):
     def __init__(self, bot):
@@ -45,7 +45,40 @@ class AdminCog(discord.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def exportratings(self, ctx: Context):
-        pass
+        dataset = await jsondb.get_all_ratings()
+        
+        embed = discord.Embed(
+            colour = embed_colour,
+            title = "Community ratings"
+        )
+
+        for key, value in dataset.items():
+            game = key
+            users = 0
+            rating = 0
+            for user, rating_dict in value.items():
+                rating += (rating_dict["theme_cohesion"] + rating_dict["assets"] + rating_dict["enjoyment"] + rating_dict["gameplay"])/4
+                users += 1
+            
+            rating = rating/users
+
+            embed.add_field(
+                name = game,
+                value = f"Mean rating: **{str(rating)}**",
+                inline = False
+            )
+
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def rawratings(self, ctx: Context):
+        dataset = await jsondb.get_all_ratings()
+
+        await ctx.send(
+            f"```json\n{json.dumps(dataset, sort_keys=True, indent=4)}\n```"
+        )
+
     
     @commands.command()
     @commands.has_permissions(administrator=True)

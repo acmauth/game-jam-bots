@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import ApplicationContext as Context
-from utils.database_handler import SQLiteHandler as sql, JSONHandler as json
+from utils.database_handler import SQLiteHandler as sql, JSONHandler as jsondb
 from utils.utilities import embed_colour
 
 class VotingCog(discord.Cog):
@@ -85,7 +85,7 @@ class VotingCog(discord.Cog):
             if await sql.crosscheck_game_team(game_title, team):
                 median = (theme_cohesion + gameplay + enjoyment + assets)/4
                 ratings = [theme_cohesion, gameplay, enjoyment, assets]
-                await json.submit_rating(ctx.author.name, game_title, ratings)
+                await jsondb.submit_rating(ctx.author.name, game_title, ratings)
                 await ctx.interaction.respond(f"Επιτυχής αξιολόγηση του παιχνιδιού `{game_title}`. Ο μέσος όρος των βαθμών σου είναι `{str(median)}`!", ephemeral=True)
             else: 
                 await ctx.interaction.respond("Δεν μπορείς να ψηφίσεις το δικό σου παιχνίδι!", ephemeral=True)
@@ -93,7 +93,7 @@ class VotingCog(discord.Cog):
 
     @commands.slash_command(description="Η εντολή επιστρέφει τα παιχνίδια που έχεις βαθμολογήσει, μαζί με τους βαθμούς που έχεις υποβάλει!")
     async def rated(self, ctx: Context):
-        ratings = await json.get_user_ratings(ctx.author.name)
+        ratings = await jsondb.get_user_ratings(ctx.author.name)
 
         embed = discord.Embed(
             colour = embed_colour,
