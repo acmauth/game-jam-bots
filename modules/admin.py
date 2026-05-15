@@ -20,11 +20,14 @@ class AdminCog(discord.Cog):
             game_title = game["game"]["title"]
             game_id = game["game"]["id"]
 
-            sub_html = html.unescape(requests.get(f"https://itch.io/jam/{active_gamejam_name}/rate/{str(game_id)}").text)
+            req = requests.get(f"https://itch.io/jam/{active_gamejam_name}/rate/{str(game_id)}")
+            req.encoding = req.apparent_encoding
+
+            sub_html = html.unescape(req.text)
             team = sub_html[
                 sub_html.find("What is your team's name?"):
                 (sub_html.find("What is your team's name?")+sub_html[sub_html.find("What is your team's name"):]
-                 .find("</span>"))].replace("</strong><br/><span>", "")
+                 .find("</span>"))].replace("</strong><br/><span>", "").replace("What is your team's name?", "")
             
             # await sql.submit_game(f"Team {str(i)}", game_title, game_url, game_id)
             await sql.submit_game(team, game_title, game_url, game_id)

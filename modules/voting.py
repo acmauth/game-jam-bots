@@ -31,7 +31,7 @@ class VotingCog(discord.Cog):
             for game in subs:
                 embed.add_field(
                     name = f"{game[2]} | ID: {str(game[1])}", # title
-                    value = f"Ομάδα: {game[0]} | [Σύνδεσμος του παιχνιδιού]({game[3]})",
+                    value = f"**Ομάδα**: {game[0]} | [Σύνδεσμος του παιχνιδιού]({game[3]})",
                     inline = False
                 )
 
